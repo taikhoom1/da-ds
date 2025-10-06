@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Info</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --accent:#22c55e; --accent2:#10b981; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: linear-gradient(180deg,#0b1020,#111827); color: var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { width: 100%; max-width: 540px; background: rgba(17,24,39,0.9); border:1px solid rgba(255,255,255,0.06); border-radius:16px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); overflow:hidden; }
+    .header { padding: 24px 24px 8px; }
+    h1 { margin:0; font-size: 22px; font-weight: 700; }
+    p { margin:6px 0 0; color: var(--muted); font-size: 14px; }
+    form { padding: 16px 24px 24px; display:grid; gap:16px; }
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input, select, textarea { width:100%; background:#0b1220; border:1px solid rgba(255,255,255,0.08); color:var(--text); padding:12px; border-radius:10px; outline:none; transition: border-color .15s, box-shadow .15s; }
+    input::placeholder, textarea::placeholder { color:#6b7280; }
+    input:focus, textarea:focus, select:focus { border-color: rgba(34,197,94,0.8); box-shadow: 0 0 0 4px rgba(34,197,94,0.15); }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .submit { background: linear-gradient(90deg, var(--accent), var(--accent2)); color:#00140a; font-weight:800; letter-spacing: .3px; border:none; padding: 12px 16px; border-radius: 12px; cursor:pointer; transition: transform .05s ease; }
+    .submit:active { transform: translateY(1px); }
+    .error { color:#fca5a5; font-size: 13px; display:none; }
+    .hidden { display:none; }
+    footer { text-align:center; padding: 0 0 16px; color:#6b7280; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>Customer Information</h1>
+      <p>Please fill in your details below.</p>
+    </div>
+    <form id="customerForm" novalidate>
+      <input type="text" name="company" class="hidden" tabindex="-1" autocomplete="off" />
+
+      <div>
+        <label for="name">Full Name</label>
+        <input id="name" name="name" type="text" placeholder="Jane Doe" required />
+        <div id="nameError" class="error">Please enter your name.</div>
+      </div>
+
+      <div>
+        <label for="phone">Phone Number</label>
+        <input id="phone" name="phone" type="tel" placeholder="+1 555 000 1111" required />
+        <div id="phoneError" class="error">Please enter a valid phone number.</div>
+      </div>
+
+      <div>
+        <label for="origin">Where are you from?</label>
+        <input id="origin" name="origin" type="text" placeholder="City, Country" required />
+        <div id="originError" class="error">Please tell us where you're from.</div>
+      </div>
+
+      <div>
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Anything else we should know?"></textarea>
+      </div>
+
+      <div class="row">
+        <button class="submit" type="submit">Submit</button>
+        <button class="submit" type="reset" style="background:transparent; color:var(--text); border:1px solid rgba(255,255,255,0.12);">Reset</button>
+      </div>
+
+      <div id="formError" class="error">Something went wrong. Please try again.</div>
+    </form>
+    <footer>Powered by Node & Express</footer>
+  </div>
+
+  <script>
+    const form = document.getElementById('customerForm');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const originInput = document.getElementById('origin');
+    const notesInput = document.getElementById('notes');
+
+    const nameError = document.getElementById('nameError');
+    const phoneError = document.getElementById('phoneError');
+    const originError = document.getElementById('originError');
+    const formError = document.getElementById('formError');
+
+    function validPhone(value) {
+      const digits = value.replace(/\D/g, '');
+      return digits.length >= 7; // minimal check
+    }
+
+    function show(el) { el.style.display = 'block'; }
+    function hide(el) { el.style.display = 'none'; }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hide(nameError); hide(phoneError); hide(originError); hide(formError);
+
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const origin = originInput.value.trim();
+      const notes = notesInput.value.trim();
+
+      let ok = true;
+      if (!name) { show(nameError); ok = false; }
+      if (!validPhone(phone)) { show(phoneError); ok = false; }
+      if (!origin) { show(originError); ok = false; }
+      if (!ok) return;
+
+      try {
+        const res = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, origin, notes })
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          window.location.href = '/thank-you.html';
+        } else {
+          show(formError);
+        }
+      } catch (err) {
+        show(formError);
+      }
+    });
+  </script>
+</body>
+</html>
