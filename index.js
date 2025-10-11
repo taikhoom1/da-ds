@@ -18,7 +18,7 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 if (!fs.existsSync(CSV_PATH)) {
-  fs.writeFileSync(CSV_PATH, 'id,timestamp,name,phone,origin,notes\n', 'utf8');
+  fs.writeFileSync(CSV_PATH, 'id,timestamp,name,email,phone,origin,notes\n', 'utf8');
 }
 
 app.use(helmet());
@@ -43,17 +43,18 @@ app.post('/submit', (req, res) => {
   }
 
   const name = sanitize(req.body.name);
+  const email = sanitize(req.body.email);
   const phone = sanitize(req.body.phone);
   const origin = sanitize(req.body.origin);
   const notes = sanitize(req.body.notes || '');
 
-  if (!name || !phone || !origin) {
+  if (!name || !email || !phone || !origin) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   const id = nanoid(12);
   const timestamp = new Date().toISOString();
-  const line = `${id},${timestamp},${name},${phone},${origin},${notes}\n`;
+  const line = `${id},${timestamp},${name},${email},${phone},${origin},${notes}\n`;
   fs.appendFile(CSV_PATH, line, (err) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to save submission' });
